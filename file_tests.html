@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>file:// URI tests</title>
+        <script>
+            function grab_file( file_path, scb, ecb ) {
+                var xhr = new XMLHttpRequest();
+                xhr.overrideMimeType( "text/plain" );
+                xhr.onreadystatechange = function() {
+                    if ( xhr.readyState == XMLHttpRequest.DONE ) {
+                        scb( xhr.responseText );
+                    }
+                }
+                xhr.open('GET', file_path, true);
+                try {
+                    xhr.send( null );
+                } catch ( e ) {
+                    ecb();
+                }
+            }
+
+            function timeit() {
+                var start = new Date().getTime();
+                var file_attempts = parseInt( document.getElementById( "filereads" ).value );
+                for( var i = 0; i < file_attempts; i++ ) {
+                    grab_file( file_attempts[i] + ".txt", function( file_contents ) {
+                        //
+                    }, function() {
+                        //
+                    })
+                }
+                var end = new Date().getTime();
+                var time = end - start;
+                alert( "File reads took " + time.toString() + " milliseconds." );
+            }
+
+            function test_arbitrary_read( filename ) {
+                grab_file( filename, function( file_contents ) {
+                    alert( "File read was successful!")
+                    console.log( file_contents );
+                }, function() {
+                    alert( "File read failed!" );
+                })
+            }
+
+            function test_any_read() {
+                grab_file( "testreadfile.txt", function( file_contents ) {
+                    file_contents = file_contents.replace( "\n", "" ).replace( "\r", "" )
+                    if( file_contents == "OK" ) {
+                        alert( "file:// access is allowed in this browser!" );
+                    } else {
+                        alert( "file:// access is not allowed in this browser!" );
+                    }
+                }, function() {
+                    alert( "file:// access is not allowed in this browser!" );
+                })
+            }
+
+            if( !( window.location.toString().indexOf( "file://" ) > -1 ) ) {
+                alert( "Hey! This testing script only worked when run from a file:// origin! Please download this file and run it locally." );
+            }
+        </script>
+    </head>
+    <body>
+        <h1>file:// URI Security Tests</h1>
+        <hr />
+        <h2>Check if any file:// reads are possible</h2>
+        <button onclick="test_any_read()">Start Test</button>
+        <hr />
+        <h2>file:// read speed test</h2>
+        Number of file reads to attempt: <input id="filereads" value="1000"/>
+        <button onclick="timeit()">Run Test</button>
+        <hr />
+        <h2>Check if arbitrary read is possible</h2>
+        <button onclick="test_arbitrary_read('/etc/passwd')">/etc/passwd</button>
+        <hr />
+    </body>
+</html>
